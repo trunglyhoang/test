@@ -1,0 +1,344 @@
+<html>
+	<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Full Screen Canvas Example</title>
+        <meta name="google" content="notranslate">
+        <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+		<style>
+			html, body {
+				width: 100%;
+                height: 100%;
+                margin: 0px;
+                border: 0;
+                overflow: hidden; /*  Disable scrollbars */
+                display: block;  /* No floating content on sides */
+			}
+		</style>
+	</head>
+	<body onresize="resizeCanvas()" onload="drawGamepad()">
+        <img src="images/MAU.png" id="imgGamepad" style="display: none;">
+		<canvas id="mainCanvas">
+		</canvas>
+		<script>
+			(function () {
+				canvas = document.getElementById('mainCanvas');
+				ctx = canvas.getContext("2d");
+				
+				canvas.width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+				canvas.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+				WIDTH	= canvas.width;
+				HEIGHT	= canvas.height;
+				
+				clearScreen();
+                // drawScreenSize();
+                //drawGamepad();
+			})();
+			
+			function resizeCanvas() {
+				canvas.width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+				canvas.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+				
+				WIDTH = canvas.width;
+				HEIGHT = canvas.height;
+				
+				clearScreen();
+                drawGamepad();
+                drawScreenSize();
+			}
+			
+			function clearScreen() {
+				var grd = ctx.createLinearGradient(0,0,0,180);
+				grd.addColorStop(0,"#6666ff");
+				grd.addColorStop(1,"#aaaacc");
+
+				ctx.fillStyle = grd;
+				ctx.fillRect(  0, 0, WIDTH, HEIGHT );
+			}
+
+            var gamepadDirectionOrigin = [
+                200, 230, 130, 120, //left: x,y,w,h
+                450, 230, 130, 120, //right: x,y,w,h
+                330, 100, 120, 130, //up: x,y,w,h
+                330, 350, 120, 130, //down: x,y,w,h
+                28, 458, 115, 224, //L: x,y,w,h
+                1773, 458, 115, 224 //R: x,y,w,h
+            ];
+
+            var gamepadButtonOrigin = [
+                1282, 314, 113, //X: x,y,Radius
+                1467, 161, 113, //Y: x,y,Radius
+                1467, 473, 113, //A: x,y,Radius
+                1650, 314, 113, //B: x,y,Radius
+                965, 570, 90, //Back: x,y,Radius
+                582, 805, 132, //AxisLeft: x,y,Radius
+                1330, 805, 132, //AxisRight: x,y,Radius
+            ];
+
+            var gamepadDirectionDynamic = [];
+            var gamepadButtonDynamic = [];
+            var imgGamepadWidth = WIDTH;
+            var imgGamepadHeight = HEIGHT;
+            var imgGamepadOffY = 0;
+
+            function updateGamepad() {
+                let scale_w = imgGamepadWidth / 1920;
+                let scale_h = imgGamepadHeight / 1080;
+                let i = 0;
+                for(i = 0; i < gamepadDirectionOrigin.length; i = i + 4) {
+                    gamepadDirectionDynamic[i] = gamepadDirectionOrigin[i] * scale_w;
+                    gamepadDirectionDynamic[i + 2] = gamepadDirectionOrigin[i + 2] * scale_w;
+                    gamepadDirectionDynamic[i + 1] = (gamepadDirectionOrigin[i + 1] * scale_h) + imgGamepadOffY;
+                    gamepadDirectionDynamic[i + 3] = gamepadDirectionOrigin[i + 3] * scale_h;
+                }
+
+                for(i = 0; i < gamepadButtonOrigin.length; i = i + 3) {
+                    gamepadButtonDynamic[i] = gamepadButtonOrigin[i] * scale_w;
+                    gamepadButtonDynamic[i + 1] = (gamepadButtonOrigin[i + 1] * scale_h) + imgGamepadOffY;
+                    if(scale_w < scale_h) {
+                        gamepadButtonDynamic[i + 2] = gamepadButtonOrigin[i + 2] * scale_w;
+                    } else {
+                        gamepadButtonDynamic[i + 2] = gamepadButtonOrigin[i + 2] * scale_h;
+                    }
+                }
+            }
+
+            function checkPointInRect(x, y, rect_x, rect_y, rect_w, rect_h) {
+                if(x < rect_x || x > rect_x + rect_w || y < rect_y || y > rect_y + rect_h) {
+                    return false;
+                }
+                return true;
+            }
+
+            function checkPointInArc(x, y, xArc, yArc, rArc) {
+                let d = rArc - Math.sqrt((x - xArc) * (x - xArc) + (y - yArc) * (y - yArc));
+                if(d < 0) {
+                    return false;
+                }
+                return true;
+            }
+
+            function checkGamepad(typetouch, x, y, x2, y2) {
+                if(typetouch == "touchmove") {
+                    if(checkPointInArc(x2, y2, gamepadButtonDynamic[15], gamepadButtonDynamic[16], gamepadButtonDynamic[17] * 1.7) == true) {
+                        if(x < x2) {
+                            log(typetouch, "AxisLeft -> right");
+                        } else {
+                            log(typetouch, "AxisLeft -> left");
+                        }
+                    } else if(checkPointInArc(x2, y2, gamepadButtonDynamic[18], gamepadButtonDynamic[19], gamepadButtonDynamic[20] * 1.7) == true) {
+                        if(x < x2) {
+                            log(typetouch, "AxisRight -> right");
+                        } else {
+                            log(typetouch, "AxisRight -> left");
+                        }
+                    }
+                    return;
+                }
+
+                if(checkPointInRect(x, y, gamepadDirectionDynamic[0], gamepadDirectionDynamic[1], gamepadDirectionDynamic[2], gamepadDirectionDynamic[3]) == true) {
+                    log(typetouch, "LEFT");
+                } else if(checkPointInRect(x, y, gamepadDirectionDynamic[4], gamepadDirectionDynamic[5], gamepadDirectionDynamic[6], gamepadDirectionDynamic[7]) == true) {
+                    log(typetouch, "RIGHT");
+                } else if(checkPointInRect(x, y, gamepadDirectionDynamic[8], gamepadDirectionDynamic[9], gamepadDirectionDynamic[10], gamepadDirectionDynamic[11]) == true) {
+                    log(typetouch, "UP");
+                } else if(checkPointInRect(x, y, gamepadDirectionDynamic[12], gamepadDirectionDynamic[13], gamepadDirectionDynamic[14], gamepadDirectionDynamic[15]) == true) {
+                    log(typetouch, "DOWN");
+                } else if(checkPointInRect(x, y, gamepadDirectionDynamic[16], gamepadDirectionDynamic[17], gamepadDirectionDynamic[18], gamepadDirectionDynamic[19]) == true) {
+                    log(typetouch, "L");
+                } else if(checkPointInRect(x, y, gamepadDirectionDynamic[20], gamepadDirectionDynamic[21], gamepadDirectionDynamic[22], gamepadDirectionDynamic[23]) == true) {
+                    log(typetouch, "R");
+                } else if(checkPointInArc(x, y, gamepadButtonDynamic[0], gamepadButtonDynamic[1], gamepadButtonDynamic[2]) == true) {
+                    log(typetouch, "X");
+                } else if(checkPointInArc(x, y, gamepadButtonDynamic[3], gamepadButtonDynamic[4], gamepadButtonDynamic[5]) == true) {
+                    log(typetouch, "Y");
+                } else if(checkPointInArc(x, y, gamepadButtonDynamic[6], gamepadButtonDynamic[7], gamepadButtonDynamic[8]) == true) {
+                    log(typetouch, "A");
+                } else if(checkPointInArc(x, y, gamepadButtonDynamic[9], gamepadButtonDynamic[10], gamepadButtonDynamic[11]) == true) {
+                    log(typetouch, "B");
+                } else if(checkPointInArc(x, y, gamepadButtonDynamic[12], gamepadButtonDynamic[13], gamepadButtonDynamic[14]) == true) {
+                    log(typetouch, "Back");
+                } else if(checkPointInArc(x, y, gamepadButtonDynamic[15], gamepadButtonDynamic[16], gamepadButtonDynamic[17]) == true) {
+                    log(typetouch, "AxisLeft");
+                } else if(checkPointInArc(x, y, gamepadButtonDynamic[18], gamepadButtonDynamic[19], gamepadButtonDynamic[20]) == true) {
+                    log(typetouch, "AxisRight");
+                }
+            }
+
+            function drawGamepad() {
+                imgGamepadWidth = WIDTH;
+                imgGamepadHeight = HEIGHT;
+                if(WIDTH < HEIGHT) {
+                    imgGamepadHeight = imgGamepadWidth * (1080 / 1920);
+                }
+                console.log("imgGamepadWidth: " + imgGamepadWidth);
+                console.log("imgGamepadHeight: " + imgGamepadHeight);
+                let imgGamepad = document.getElementById("imgGamepad");
+                let el = document.getElementById("mainCanvas");
+                let ctx = el.getContext("2d");
+                console.log("imgGamepad: " + imgGamepad);
+                if(WIDTH < HEIGHT) { //portrait
+                    imgGamepadOffY = (HEIGHT / 2) - (imgGamepadHeight / 2);
+                } else {
+                    imgGamepadOffY = 0;
+                }
+                ctx.drawImage(imgGamepad, 0, imgGamepadOffY, imgGamepadWidth, imgGamepadHeight);
+
+                updateGamepad();
+            }
+
+            function drawScreenSize() {
+                ctx.textBaseline = "top";
+                ctx.fillStyle = 'white';
+                ctx.fillText("SCR_W: " + WIDTH, 0, 0);
+                ctx.fillText("SCR_H: " + HEIGHT, 0, 30);
+            }
+
+            document.addEventListener("DOMContentLoaded", startup);
+            function startup() {
+                console.log("startup: ");
+                //drawGamepad();
+                var el = document.getElementById("mainCanvas");
+                el.addEventListener("touchstart", handleStart, false);
+                el.addEventListener("touchend", handleEnd, false);
+                el.addEventListener("touchcancel", handleCancel, false);
+                el.addEventListener("touchmove", handleMove, false);
+            }
+
+            var ongoingTouches = [];
+
+            function handleStart(evt) {
+                evt.preventDefault();
+                log("touchstart");
+                console.log("touchstart.");
+                var el = document.getElementById("mainCanvas");
+                var ctx = el.getContext("2d");
+                var touches = evt.changedTouches;
+
+                for (var i = 0; i < touches.length; i++) {
+                    //log("touchstart, x: " + touches[i].pageX + ", y: " + touches[i].pageY);
+                    checkGamepad("touchstart", touches[i].pageX, touches[i].pageY);
+                    console.log("touchstart:" + i + "...");
+                    ongoingTouches.push(copyTouch(touches[i]));
+                    var color = colorForTouch(touches[i]);
+                    ctx.beginPath();
+                    ctx.arc(touches[i].pageX, touches[i].pageY, 4, 0, 2 * Math.PI, false);  // a circle at the start
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    console.log("touchstart:" + i + ".");
+                }
+            }
+
+            function handleMove(evt) {
+                evt.preventDefault();
+                //log("touchmove");
+                var el = document.getElementById("mainCanvas");
+                var ctx = el.getContext("2d");
+                var touches = evt.changedTouches;
+
+                for (var i = 0; i < touches.length; i++) {
+                    var color = colorForTouch(touches[i]);
+                    var idx = ongoingTouchIndexById(touches[i].identifier);
+
+                    if (idx >= 0) {
+                        console.log("continuing touch "+idx);
+                        ctx.beginPath();
+                        console.log("ctx.moveTo(" + ongoingTouches[idx].pageX + ", " + ongoingTouches[idx].pageY + ");");
+                        ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
+                        console.log("ctx.lineTo(" + touches[i].pageX + ", " + touches[i].pageY + ");");
+                        ctx.lineTo(touches[i].pageX, touches[i].pageY);
+                        checkGamepad("touchmove", ongoingTouches[idx].pageX, ongoingTouches[idx].pageY, touches[i].pageX, touches[i].pageY);
+                        ctx.lineWidth = 4;
+                        ctx.strokeStyle = color;
+                        ctx.stroke();
+
+                        ongoingTouches.splice(idx, 1, copyTouch(touches[i]));  // swap in the new touch record
+                        console.log(".");
+                    } else {
+                        console.log("can't figure out which touch to continue");
+                    }
+                }
+            }
+
+            function handleEnd(evt) {
+                evt.preventDefault();
+                log("touchend");
+                var el = document.getElementById("mainCanvas");
+                var ctx = el.getContext("2d");
+                var touches = evt.changedTouches;
+
+                for (var i = 0; i < touches.length; i++) {
+                    checkGamepad("touchend", touches[i].pageX, touches[i].pageY);
+                    var color = colorForTouch(touches[i]);
+                    var idx = ongoingTouchIndexById(touches[i].identifier);
+
+                    if (idx >= 0) {
+                        ctx.lineWidth = 4;
+                        ctx.fillStyle = color;
+                        ctx.beginPath();
+                        ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
+                        ctx.lineTo(touches[i].pageX, touches[i].pageY);
+                        ctx.fillRect(touches[i].pageX - 4, touches[i].pageY - 4, 8, 8);  // and a square at the end
+                        ongoingTouches.splice(idx, 1);  // remove it; we're done
+                    } else {
+                        console.log("can't figure out which touch to end");
+                    }
+                }
+            }
+
+            function handleCancel(evt) {
+                evt.preventDefault();
+                log("touchcancel");
+                console.log("touchcancel.");
+                var touches = evt.changedTouches;
+
+                for (var i = 0; i < touches.length; i++) {
+                    var idx = ongoingTouchIndexById(touches[i].identifier);
+                    ongoingTouches.splice(idx, 1);  // remove it; we're done
+                }
+            }
+
+            function colorForTouch(touch) {
+                var r = touch.identifier % 16;
+                var g = Math.floor(touch.identifier / 3) % 16;
+                var b = Math.floor(touch.identifier / 7) % 16;
+                r = r.toString(16); // make it a hex digit
+                g = g.toString(16); // make it a hex digit
+                b = b.toString(16); // make it a hex digit
+                var color = "#" + r + g + b;
+                console.log("color for touch with identifier " + touch.identifier + " = " + color);
+                return color;
+            }
+
+            function copyTouch({ identifier, pageX, pageY }) {
+                return { identifier, pageX, pageY };
+            }
+
+            function ongoingTouchIndexById(idToFind) {
+                for (var i = 0; i < ongoingTouches.length; i++) {
+                    var id = ongoingTouches[i].identifier;
+
+                    if (id == idToFind) {
+                    return i;
+                    }
+                }
+                return -1;    // not found
+            }
+
+            function log(typetouch, msg) {
+                if(msg == null || msg == undefined) {
+                    msg = "";
+                }
+                var el = document.getElementById("mainCanvas");
+                var ctx = el.getContext("2d");
+                ctx.font = "20px Arial";
+                ctx.fillStyle = 'white';
+                ctx.fillRect(WIDTH/2 - 150, 0, 300, 30);
+                ctx.fillStyle = 'red';
+                ctx.textAlign = "center";
+                ctx.textBaseline = "top";
+                ctx.fillText(typetouch + " " + msg, WIDTH / 2, 5);
+            }
+		</script>
+	</body>
+</html>
