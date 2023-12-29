@@ -42,7 +42,7 @@
     <span style="color:red;" id="txtStatus">Status: waiting</span>
   </body>
   <script>
-    var ws = new WebSocket("ws://192.168.0.180:8181");
+    var ws = new WebSocket("wss://192.168.0.180:8181");
     var wsConnected = false;
     ws.onopen = function(e) {
         // ws.send(JSON.stringify(stock_request));
