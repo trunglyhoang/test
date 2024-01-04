@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+  </head>
+  <body>
+    <div>
+      <p>Remote Connection</p>
+    </div>
+    <div>
+      <input type="text" name="txtRandomCode" id="txtRandomCode">
+      <button id="sendRandomCode">Send Random Code</button>
+      <br><br>
+    </div>
+    <div style="display: flex">
+      <div style="margin-right: 100px">
+        <textarea
+          name="txtContent"
+          id="txtContent"
+          cols="30"
+          rows="10"
+        ></textarea>
+        <button id="send">Send Data</button>
+      </div>
+    </div>
+    <div>
+      <pre id="txtDataTitle">Nội dung nhận:</pre>
+      <pre style="color:red;" id="txtData">null</pre>
+    </div>
+
+    <br />
+    <br />
+    <br />
+    <div>
+      <p>Connection String Received from Local:</p>
+      <textarea name="txtAccept" id="txtAccept" cols="30" rows="3"></textarea>
+    </div>
+    <div style="display: flex">
+      <div style="margin-right: 100px">
+        <p>Connection String Remote - Send to Local:</p>
+        <textarea name="txtCreate" id="txtCreate" cols="30" rows="3"></textarea>
+      </div>
+    </div>
+    
+    <span style="color:red;" id="txtStatus">Status: waiting</span>
+  </body>
+  <script src="src/remote.js"></script>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+  </head>
+  <body>
+    <div>
+      <p>Local Connection</p>
+    </div>
+    <div style="display: flex">
+      <div style="margin-right: 100px;">
+        <textarea
+          name="txtContent"
+          id="txtContent"
+          cols="30"
+          rows="10"
+        ></textarea>
+        <button id="send">Send Data</button>
+      </div>
+    </div>
+    <div>
+      <pre id="txtDataTitle">Nội dung nhận:</pre>
+      <pre style="color:red;" id="txtData">null</pre>
+    </div>
+
+    <br />
+    <br />
+    <br />
+    <div style="display: flex">
+      <div style="margin-right: 100px">
+        <p>Connection String Local - Send to Remote:</p>
+        <textarea name="txtCreate" id="txtCreate" cols="30" rows="3"></textarea>
+      </div>
+    </div>
+    <div>
+      <p>Connection String Received from Remote:</p>
+      <textarea name="txtAccept" id="txtAccept" cols="30" rows="3"></textarea>
+    </div>
+    <span style="color:red;" id="txtStatus">Status: waiting</span>
+    <br><br><br>
+    <button id="btnConnect">Connect</button>
+  </body>
+  <script src="src/local.js">
+  </script>
+</html>
