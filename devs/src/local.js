@@ -45,7 +45,7 @@ ws.onmessage = function(e) {
                 if(obj.typeData == 'RemoteDescription')
                 {
                     localInformation.remoteDescription = obj.value;
-                    state = webrtcReceivedRemoteDescription;
+                    state = localState.webrtcReceivedRemoteDescription;
                     setRemoteDescription();
                     // clearInterval(myTimer);
                 }
@@ -100,6 +100,7 @@ function sendDataJSON(websocket, type, value)
 //===================================//
 //WebRTC
 const localWebRTC = new RTCPeerConnection();
+const dataChannel = localWebRTC.createDataChannel("data_channel");
 function initLocalWebRTC()
 {
     localWebRTC.onicecandidate = function (e) {
@@ -116,7 +117,6 @@ function initLocalWebRTC()
         }
     };
     
-    const dataChannel = localWebRTC.createDataChannel("data_channel");
     dataChannel.onmessage = function (e) {
         console.log("trung.lyhoang - local.js - dataChannel.onmessage: " + e.data);
         document.getElementById("txtData").textContent = e.data;

@@ -39,7 +39,7 @@ ws.onmessage = function(e) {
                 if(obj.typeData == "LocalDescription")
                 {
                     remoteInformation.localDescription = obj.value;
-                    state = wsReceivedLocoDescription;
+                    state = remoteState.wsReceivedLocoDescription;
                     initRemoteWebRTC();
                 }
                 break;
@@ -60,7 +60,7 @@ function sendRemoteDescription()
         const connStr = JSON.stringify(remoteWebRTC.localDescription);
         console.log("trung.lyhoang - remote.js - sendRemoteDescription - connStr: ", connStr);
         sendDataJSON(ws, 'RemoteDescription', connStr);
-        state = localState.webrtcSentRemoteDescription;
+        state = remoteState.webrtcSentRemoteDescription;
     }
 }
 
@@ -129,13 +129,12 @@ function setLocalDescription()
 // send từ remote wa
 document.getElementById("send").addEventListener("click", (e) => {
     const txtContent = document.getElementById("txtContent");
-
     if (txtContent.value === "") {
-    console.log("chưa nhập");
+        console.log("chưa nhập");
     } else {
-    console.log(txtContent.value);
-    remoteWebRTC.channel.send(txtContent.value);
-    txtContent.value = "";
+        console.log(txtContent.value);
+        remoteWebRTC.channel.send(txtContent.value);
+        txtContent.value = "";
     }
 });
 
@@ -144,7 +143,6 @@ document.getElementById("send").addEventListener("click", (e) => {
 // send Random Code to Server
 document.getElementById("sendRandomCode").addEventListener("click", (e) => {
     const txtContent = document.getElementById("txtRandomCode");
-
     if (txtContent.value === "") {
         console.log("chưa nhập");
     } else {

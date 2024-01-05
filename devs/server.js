@@ -30,12 +30,36 @@ wss.on('connection', function connection(ws) {
                         sendDataJSON(ws, 'RandomCode', ws.randomCode);
                     }
                     break;
+                
+                //Local sent LocalDescription
                 case 'LocalDescription':
                     ws.localDescription = obj.value;
                     break;
+                
+                //Remote sent RemoteDescription
                 case 'RemoteDescription':
                     ws.remoteDescription = obj.value;
+                    let localWS = findLocalWebsocket(ws.randomCode);
+                    if(localWS != null)
+                    {
+                        sendDataJSON(localWS, 'RemoteDescription', ws.remoteDescription);
+                    }
                     break;
+                
+                //Remote sent RandomCode:
+                case 'RandomCode':
+                    let localDescription = getLocalDescriptionWithRandomCode(obj.value);
+                    if(localDescription != '')
+                    {
+                        sendDataJSON(ws, 'LocalDescription', localDescription);
+                        ws.randomCode = obj.value;
+                    }
+                    else
+                    {
+                        sendDataJSON(ws, 'WrongRandomCode', '');
+                    }
+                    break;
+                
             }
         } catch(err) {
             console.log(err.message);
@@ -45,7 +69,7 @@ wss.on('connection', function connection(ws) {
     ws.on('close', function message(data) {
         console.log('====================');
         console.log('closed: %s', data);
-        RemoveObjInArray(listWS, ws);
+        removeObjInArray(listWS, ws);
         console.log('listWS length: ' + listWS.length);
         console.log('Detail connection closed: ');
         console.log('TypeConnection: ' + ws.TypeConnection);
@@ -57,6 +81,11 @@ wss.on('connection', function connection(ws) {
 function generateRandomCode()
 {
     //Returns a random integer between 100 000 -> 999 999
+    let randomCode = Math.floor(Math.random() * 1000000);
+    if(randomCode < 100000)
+    {
+        randomCode = 1000000 - randomCode;
+    }
     return Math.floor(Math.random() * 1000000);
 }
 
@@ -69,7 +98,7 @@ function sendDataJSON(websocket, type, value)
     websocket.send(objString);
 }
 
-function RemoveObjInArray(arr, obj)
+function removeObjInArray(arr, obj)
 {
     let index = -1;
     for(let i = 0; i < arr.length; i++)
@@ -84,6 +113,32 @@ function RemoveObjInArray(arr, obj)
     {
         arr.splice(index, 1);
     }
+}
+
+function getLocalDescriptionWithRandomCode(randomCode)
+{
+    for(let i = 0; i < listWS.length; i++)
+    {
+        if(listWS[i].TypeConnection == 'Local' && listWS[i].randomCode == randomCode)
+        {
+            console.log("Two random code is same");
+            return listWS[i].localDescription;
+        }
+    }
+    return '';
+}
+
+function findLocalWebsocket(randomCode)
+{
+    for(let i = 0; i < listWS.length; i++)
+    {
+        if(listWS[i].TypeConnection == 'Local' && listWS[i].randomCode == randomCode)
+        {
+            console.log("Two random code is same");
+            return listWS[i];
+        }
+    }
+    return null;
 }
 
 console.log((new Date()) + " Server is listenning on port " + PORT);
