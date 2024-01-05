@@ -97,6 +97,9 @@ function initRemoteWebRTC() {
         receiveChannel.onopen = function (e) {
             console.log("Open");
             document.getElementById("txtStatus").textContent = "Trạng thái: Open";
+            document.getElementById("send").disabled = false;
+            document.getElementById("sendRandomCode").disabled = true;
+            document.getElementById("txtRandomCode").disabled = true;
         };
         receiveChannel.onclose = function (e) {
             console.log("Close");
@@ -119,13 +122,13 @@ function setLocalDescription()
                 console.log("trung.lyhoang - remote.js - setLocalDescription, createAnswer Success");
                 remoteWebRTC.setLocalDescription(a);
             }).then(function (a) {
-                // console.log(JSON.stringify(remoteWebRTC.localDescription));
                 console.log("trung.lyhoang - remote.js - setLocalDescription, setLocalDescription DONE");
             });
         });
     }
 }
 
+document.getElementById("send").disabled = true;
 // send từ remote wa
 document.getElementById("send").addEventListener("click", (e) => {
     const txtContent = document.getElementById("txtContent");
@@ -138,8 +141,7 @@ document.getElementById("send").addEventListener("click", (e) => {
     }
 });
 
-
-
+document.getElementById("sendRandomCode").disabled = false;
 // send Random Code to Server
 document.getElementById("sendRandomCode").addEventListener("click", (e) => {
     const txtContent = document.getElementById("txtRandomCode");

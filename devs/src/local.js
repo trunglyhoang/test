@@ -6,8 +6,6 @@ const localState = {
     webrtcConnected: 4
 }
 
-// var remoteDescription = '';
-// var randomCode = '';
 var localInformation = {
     remoteDescription: '',
     randomCode: ''
@@ -38,6 +36,7 @@ ws.onmessage = function(e) {
                 if(obj.typeData == "RandomCode")
                 {
                     localInformation.randomCode = obj.value;
+                    document.getElementById("txtRandomCode").textContent = obj.value;
                     initLocalWebRTC();
                 }
                 break;
@@ -47,7 +46,6 @@ ws.onmessage = function(e) {
                     localInformation.remoteDescription = obj.value;
                     state = localState.webrtcReceivedRemoteDescription;
                     setRemoteDescription();
-                    // clearInterval(myTimer);
                 }
             break;
         }
@@ -55,21 +53,6 @@ ws.onmessage = function(e) {
         console.log(err.message);
     }
 }
-
-// var myTimer = setInterval(myFunctionTimer, 2000);
-// var stepConnection = 0;
-// function myFunctionTimer()
-// {
-//     if(wsConnected == true)
-//     {
-//     switch(stepConnection)
-//     {
-//         case 1:
-//         ws.send("GetRemoteDescription");
-//         break;
-//     }
-//     }
-// }
 
 function sendLocalDescription()
 {
@@ -124,6 +107,7 @@ function initLocalWebRTC()
     dataChannel.onopen = function (e) {
         console.log("trung.lyhoang - local.js - dataChannel.onopen");
         document.getElementById("txtStatus").textContent = "Trạng thái: Open";
+        document.getElementById("send").disabled = false;
     };
     dataChannel.onclose = function (e) {
         console.log("trung.lyhoang - local.js - dataChannel.onclose");
@@ -131,7 +115,6 @@ function initLocalWebRTC()
     };
     
     localWebRTC.createOffer().then(function (o) {
-        // console.log(localWebRTC.setLocalDescription(o));
         console.log('trung.lyhoang - local.js - initLocalWebRTC - createOffer success');
         localWebRTC.setLocalDescription(o);
     });
@@ -150,19 +133,7 @@ function setRemoteDescription()
 }
 //===================================//
 
-// // Truyền data vào
-// document.getElementById("txtAccept").addEventListener("change", (e) => {
-//   const txtAccept = document.getElementById("txtAccept");
-//   if (txtAccept.value !== "") {
-//     console.log("có data");
-//     local
-//       .setRemoteDescription(JSON.parse(txtAccept.value))
-//       .then(function () {
-//         console.log("Done");
-//       });
-//   }
-// });
-
+document.getElementById("send").disabled = true;
 // Send msg
 document.getElementById("send").addEventListener("click", (e) => {
     const txtContent = document.getElementById("txtContent");
@@ -174,19 +145,3 @@ document.getElementById("send").addEventListener("click", (e) => {
         txtContent.value = "";
     }
 });
-
-// Connect button
-// document.getElementById("btnConnect").addEventListener("click", (e) => {
-//     document.getElementById("btnConnect").disabled = true;
-//     if(wsConnected == false)
-//     {
-//     console.log("trung.lyhoang - websocket fail");
-//     }
-//     else
-//     {
-//     const connStr = JSON.stringify(local.localDescription);
-//     console.log("trung.lyhoang: test01 send ws to server", connStr);
-//     ws.send(connStr);
-//     }
-// });
-

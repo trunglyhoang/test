@@ -19,6 +19,7 @@ wss.on('connection', function connection(ws) {
         console.log('dataString: ', dataString);
         try
         {
+            let localWS = null;
             const obj = JSON.parse(dataString);
             switch(obj.typeData)
             {
@@ -39,7 +40,7 @@ wss.on('connection', function connection(ws) {
                 //Remote sent RemoteDescription
                 case 'RemoteDescription':
                     ws.remoteDescription = obj.value;
-                    let localWS = findLocalWebsocket(ws.randomCode);
+                    localWS = findLocalWebsocket(ws.randomCode);
                     if(localWS != null)
                     {
                         sendDataJSON(localWS, 'RemoteDescription', ws.remoteDescription);
@@ -48,15 +49,18 @@ wss.on('connection', function connection(ws) {
                 
                 //Remote sent RandomCode:
                 case 'RandomCode':
-                    let localDescription = getLocalDescriptionWithRandomCode(obj.value);
-                    if(localDescription != '')
+                    localWS = findLocalWebsocket(obj.value);
+                    if(localWS != null)
                     {
-                        sendDataJSON(ws, 'LocalDescription', localDescription);
-                        ws.randomCode = obj.value;
-                    }
-                    else
-                    {
-                        sendDataJSON(ws, 'WrongRandomCode', '');
+                        if(localWS.localDescription != '')
+                        {
+                            sendDataJSON(ws, 'LocalDescription', localWS.localDescription);
+                            ws.randomCode = obj.value;
+                        }
+                        else
+                        {
+                            sendDataJSON(ws, 'WrongRandomCode', '');
+                        }
                     }
                     break;
                 
@@ -73,7 +77,6 @@ wss.on('connection', function connection(ws) {
         console.log('listWS length: ' + listWS.length);
         console.log('Detail connection closed: ');
         console.log('TypeConnection: ' + ws.TypeConnection);
-        console.log('localDescription: ' + ws.localDescription);
         console.log('====================');
     });
 });
@@ -86,7 +89,7 @@ function generateRandomCode()
     {
         randomCode = 1000000 - randomCode;
     }
-    return Math.floor(Math.random() * 1000000);
+    return randomCode;
 }
 
 function sendDataJSON(websocket, type, value)
@@ -115,26 +118,13 @@ function removeObjInArray(arr, obj)
     }
 }
 
-function getLocalDescriptionWithRandomCode(randomCode)
-{
-    for(let i = 0; i < listWS.length; i++)
-    {
-        if(listWS[i].TypeConnection == 'Local' && listWS[i].randomCode == randomCode)
-        {
-            console.log("Two random code is same");
-            return listWS[i].localDescription;
-        }
-    }
-    return '';
-}
-
 function findLocalWebsocket(randomCode)
 {
     for(let i = 0; i < listWS.length; i++)
     {
         if(listWS[i].TypeConnection == 'Local' && listWS[i].randomCode == randomCode)
         {
-            console.log("Two random code is same");
+            // console.log("Two random code is same");
             return listWS[i];
         }
     }
