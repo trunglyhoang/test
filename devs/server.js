@@ -62,6 +62,10 @@ wss.on('connection', function connection(ws) {
                             sendDataJSON(ws, 'WrongRandomCode', '');
                         }
                     }
+                    else
+                    {
+                        sendDataJSON(ws, 'WrongRandomCode', '');
+                    }
                     break;
                 
             }

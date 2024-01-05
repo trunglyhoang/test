@@ -104,6 +104,10 @@ function initRemoteWebRTC() {
         receiveChannel.onclose = function (e) {
             console.log("Close");
             document.getElementById("txtStatus").textContent = "Trạng thái: Close";
+            document.getElementById("send").disabled = true;
+            document.getElementById("sendRandomCode").disabled = false;
+            document.getElementById("txtRandomCode").disabled = false;
+            state = remoteState.wsConnected;
         };
         remoteWebRTC.channel = receiveChannel;
     };

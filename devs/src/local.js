@@ -24,6 +24,13 @@ ws.onopen = function(e) {
     state = localState.wsConnected;
 }
 
+ws.onclose = function(e) {
+    console.log("trung.lyhoang - local.js - websocket close");
+    wsConnected = false;
+    state = localState.none;
+    document.getElementById("btnConnect").disabled = false;
+}
+
 ws.onmessage = function(e) {
     var data = e.data;
     console.log("trung.lyhoang - local.js - websocket onmessage: " + data);
@@ -83,7 +90,6 @@ function sendDataJSON(websocket, type, value)
 //===================================//
 //WebRTC
 const localWebRTC = new RTCPeerConnection();
-const dataChannel = localWebRTC.createDataChannel("data_channel");
 function initLocalWebRTC()
 {
     localWebRTC.onicecandidate = function (e) {
@@ -99,7 +105,22 @@ function initLocalWebRTC()
             console.log("trung.lyhoang - local.js - onicecandidate, e.candidate = null");
         }
     };
+
+    initDataChannel();
+
+    createOffer();
     
+    // localWebRTC.createOffer().then(function (o) {
+    //     console.log('trung.lyhoang - local.js - initLocalWebRTC - createOffer success');
+    //     localWebRTC.setLocalDescription(o);
+    // });
+}
+
+var dataChannel = null;
+function initDataChannel()
+{
+    console.log("trung.lyhoang - local.js - initDataChannel");
+    dataChannel = localWebRTC.createDataChannel("data_channel");
     dataChannel.onmessage = function (e) {
         console.log("trung.lyhoang - local.js - dataChannel.onmessage: " + e.data);
         document.getElementById("txtData").textContent = e.data;
@@ -112,8 +133,14 @@ function initLocalWebRTC()
     dataChannel.onclose = function (e) {
         console.log("trung.lyhoang - local.js - dataChannel.onclose");
         document.getElementById("txtStatus").textContent = "Trạng thái: Close";
+        document.getElementById("send").disabled = true;
+        document.getElementById("btnConnect").disabled = false;
+        state = localState.webrtcSentLocalDescription;
     };
-    
+}
+
+function createOffer()
+{
     localWebRTC.createOffer().then(function (o) {
         console.log('trung.lyhoang - local.js - initLocalWebRTC - createOffer success');
         localWebRTC.setLocalDescription(o);
@@ -124,6 +151,7 @@ function setRemoteDescription()
 {
     if(localInformation.remoteDescription !== "")
     {
+        console.log("trung.lyhoang - local.js - setRemoteDescription - 001");
         document.getElementById("txtAccept").value = localInformation.remoteDescription;
         localWebRTC.setRemoteDescription(JSON.parse(localInformation.remoteDescription)).then(function () {
             console.log("trung.lyhoang - local.js - setRemoteDescription - DONE");
@@ -143,5 +171,26 @@ document.getElementById("send").addEventListener("click", (e) => {
         console.log(txtContent.value);
         dataChannel.send(txtContent.value);
         txtContent.value = "";
+    }
+});
+
+// Connect button
+document.getElementById("btnConnect").disabled = true;
+document.getElementById("btnConnect").addEventListener("click", (e) => {
+    document.getElementById("btnConnect").disabled = true;
+    if(wsConnected == false)
+    {
+        console.log("trung.lyhoang - websocket begin to start");
+        ws = new WebSocket("wss://gl-ws-test.glitch.me/");
+    }
+    else
+    {
+        console.log("trung.lyhoang - websocket is connecting");
+        initDataChannel();
+        createOffer();
+        // localWebRTC.createOffer().then(function (o) {
+        //     console.log('trung.lyhoang - local.js - initLocalWebRTC - createOffer success');
+        //     localWebRTC.setLocalDescription(o);
+        // });
     }
 });
